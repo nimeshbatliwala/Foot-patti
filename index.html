@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Pro Laser Ruler Final</title>
     <style>
         :root { 
@@ -45,8 +47,8 @@
 
         /* RULER BASICS */
         .ruler { position: fixed; background: var(--ruler-bg); z-index: 10; transition: opacity 0.3s ease; }
-        #h-ruler { top: 30px; left: 30px; width: calc(100% - 30px); height: 115px; border-bottom: 2px solid var(--border); }
-        #v-ruler { top: 30px; left: 30px; width: 115px; height: calc(100% - 30px); border-right: 2px solid var(--border); }
+        #h-ruler { top: 30px; left: 30px; width: calc(100% + 100px); height: 115px; border-bottom: 2px solid var(--border); }
+        #v-ruler { top: 30px; left: 30px; width: 115px; height: calc(100% + 100px); border-right: 2px solid var(--border); }
 
         .tick { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: none; }
         .major-mark { background: var(--pink); z-index: 5; box-shadow: 0 0 8px var(--pink); }
@@ -90,6 +92,7 @@
     <div class="controls">
         <div class="icon-btn" onclick="toggleTheme()">🌓</div>
         <div class="icon-btn" id="unit-btn" onclick="toggleUnit()">INCH</div>
+        <div class="icon-btn" onclick="toggleFullScreen()">⛶</div>
     </div>
 
     <div id="display">
@@ -108,10 +111,22 @@
 
 <script>
     let ppi = parseFloat(localStorage.getItem('viz_ppi')) || 115;
-    let rulerType = 'cm'; // Determines what lines are drawn
+    let rulerType = 'cm'; 
     const offset = 30;
 
     if(localStorage.getItem('ruler_theme') === 'light') document.body.classList.add('light-mode');
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                alert(`Error: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
@@ -137,6 +152,8 @@
     }
 
     function launchApp() {
+        // Trigger fullscreen on user interaction
+        toggleFullScreen();
         document.getElementById('splash').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         buildRulers();
@@ -147,15 +164,14 @@
         h.innerHTML = ''; v.innerHTML = '';
         
         const spacing = (rulerType === 'cm') ? (ppi / 25.4) : (ppi / 8); 
-        const limit = (rulerType === 'cm') ? 350 : 120; 
+        const limit = (rulerType === 'cm') ? 400 : 150; 
         const majorFreq = (rulerType === 'cm') ? 10 : 8;
 
         for(let i=0; i <= limit; i++) {
             const pos = i * spacing;
-            if(pos > Math.max(window.innerWidth, window.innerHeight)) break;
             
             // Horizontal
-            if(pos <= window.innerWidth) {
+            if(pos <= window.innerWidth + 200) {
                 const hTick = document.createElement('div');
                 hTick.className = 'tick'; hTick.style.left = pos + 'px';
                 if(i % majorFreq === 0) {
@@ -169,7 +185,7 @@
             }
 
             // Vertical
-            if(pos <= window.innerHeight + 100) {
+            if(pos <= window.innerHeight + 200) {
                 const vTick = document.createElement('div');
                 vTick.className = 'tick'; vTick.style.top = pos + 'px'; vTick.style.right = '0';
                 if(i % majorFreq === 0) {
@@ -221,6 +237,9 @@
         vLaser.style.display = 'block'; hLaser.style.display = 'none';
         updateMeasure(screenY);
     });
+
+    // Re-build on resize (for fullscreen shifts)
+    window.addEventListener('resize', buildRulers);
 </script>
 </body>
 </html>
