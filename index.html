@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Pro Laser Ruler Final</title>
+    <title>Pro Laser Ruler</title>
     <style>
         :root { 
             --pink: #ff007f; --cyan: #00f2ff; --yellow: #ffd700; 
@@ -47,8 +47,8 @@
 
         /* RULER BASICS */
         .ruler { position: fixed; background: var(--ruler-bg); z-index: 10; transition: opacity 0.3s ease; }
-        #h-ruler { top: 30px; left: 30px; width: calc(100% + 100px); height: 115px; border-bottom: 2px solid var(--border); }
-        #v-ruler { top: 30px; left: 30px; width: 115px; height: calc(100% + 100px); border-right: 2px solid var(--border); }
+        #h-ruler { top: 30px; left: 30px; width: calc(100% + 200px); height: 115px; border-bottom: 2px solid var(--border); }
+        #v-ruler { top: 30px; left: 30px; width: 115px; height: calc(100% + 500px); border-right: 2px solid var(--border); }
 
         .tick { position: absolute; display: flex; align-items: center; justify-content: center; pointer-events: none; }
         .major-mark { background: var(--pink); z-index: 5; box-shadow: 0 0 8px var(--pink); }
@@ -60,7 +60,7 @@
         /* TRACKS */
         .track { position: fixed; background: var(--ruler-bg); border-radius: 40px; border: 1px solid var(--border); z-index: 2000; }
         #h-track { bottom: 40px; left: 180px; right: 40px; height: 65px; }
-        #v-track { top: 420px; right: 40px; bottom: 120px; width: 65px; }
+        #v-track { top: 380px; right: 40px; bottom: 120px; width: 65px; }
         .thumb { position: absolute; background: var(--pink); border-radius: 50%; box-shadow: 0 0 25px var(--pink); width: 55px; height: 55px; }
 
         /* MODALS */
@@ -92,7 +92,6 @@
     <div class="controls">
         <div class="icon-btn" onclick="toggleTheme()">🌓</div>
         <div class="icon-btn" id="unit-btn" onclick="toggleUnit()">INCH</div>
-        <div class="icon-btn" onclick="toggleFullScreen()">⛶</div>
     </div>
 
     <div id="display">
@@ -115,18 +114,6 @@
     const offset = 30;
 
     if(localStorage.getItem('ruler_theme') === 'light') document.body.classList.add('light-mode');
-
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                alert(`Error: ${err.message}`);
-            });
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-    }
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
@@ -152,8 +139,10 @@
     }
 
     function launchApp() {
-        // Trigger fullscreen on user interaction
-        toggleFullScreen();
+        // Trigger fullscreen only on Start button click
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(e => console.log(e));
+        }
         document.getElementById('splash').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         buildRulers();
@@ -164,7 +153,7 @@
         h.innerHTML = ''; v.innerHTML = '';
         
         const spacing = (rulerType === 'cm') ? (ppi / 25.4) : (ppi / 8); 
-        const limit = (rulerType === 'cm') ? 400 : 150; 
+        const limit = (rulerType === 'cm') ? 450 : 180; 
         const majorFreq = (rulerType === 'cm') ? 10 : 8;
 
         for(let i=0; i <= limit; i++) {
@@ -185,7 +174,7 @@
             }
 
             // Vertical
-            if(pos <= window.innerHeight + 200) {
+            if(pos <= window.innerHeight + 500) {
                 const vTick = document.createElement('div');
                 vTick.className = 'tick'; vTick.style.top = pos + 'px'; vTick.style.right = '0';
                 if(i % majorFreq === 0) {
@@ -238,7 +227,6 @@
         updateMeasure(screenY);
     });
 
-    // Re-build on resize (for fullscreen shifts)
     window.addEventListener('resize', buildRulers);
 </script>
 </body>
